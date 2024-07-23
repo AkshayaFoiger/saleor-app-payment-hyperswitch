@@ -11,6 +11,7 @@ import {
   PaymentAppConfigEntryFullyConfigured,
   paymentAppFullyConfiguredEntrySchema,
 } from "../payment-app-configuration/config-entry";
+import { ConfigObject } from "@/backend-lib/api-route-utils";
 
 const SANDBOX_BASE_URL: string = "https://sandbox.hyperswitch.io";
 const PROD_BASE_URL: string = "https://api.hyperswitch.io";
@@ -30,23 +31,19 @@ const getHyperswitchBaseUrl = (publishableKey: string) => {
 };
 
 const fetchHyperswitchConfiguration = async (
-  configurator: PaymentAppConfigurator,
-  channelId: string,
+  configData: ConfigObject,
 ): Promise<PaymentAppConfigEntryFullyConfigured> => {
-  const appConfig = await configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, channelId);
+  const appConfig = await configData.configurator.getConfig();
+  const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
   return paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
 };
 
-export const fetchHyperswitchProfileID = async (
-  configurator: PaymentAppConfigurator,
-  channelId: string,
-): Promise<string> => {
-  const appConfig = await configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, channelId);
+export const fetchHyperswitchProfileID = async (configData: ConfigObject): Promise<string> => {
+  const appConfig = await configData.configurator.getConfig();
+  const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
@@ -54,12 +51,9 @@ export const fetchHyperswitchProfileID = async (
   return HyperswitchConfig.profileId;
 };
 
-export const fetchHyperswitchPublishableKey = async (
-  configurator: PaymentAppConfigurator,
-  channelId: string,
-): Promise<string> => {
-  const appConfig = await configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, channelId);
+export const fetchHyperswitchPublishableKey = async (configData: ConfigObject): Promise<string> => {
+  const appConfig = await configData.configurator.getConfig();
+  const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
@@ -68,11 +62,10 @@ export const fetchHyperswitchPublishableKey = async (
 };
 
 export const fetchHyperswitchPaymentResponseHashKey = async (
-  configurator: PaymentAppConfigurator,
-  channelId: string,
+  configData: ConfigObject,
 ): Promise<string> => {
-  const appConfig = await configurator.getConfig();
-  const appChannelConfig = getConfigurationForChannel(appConfig, channelId);
+  const appConfig = await configData.configurator.getConfig();
+  const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
   if (appChannelConfig == null) {
     throw new ChannelNotConfigured("Please assign a channel for your configuration");
   }
@@ -80,14 +73,8 @@ export const fetchHyperswitchPaymentResponseHashKey = async (
   return HyperswitchConfig.paymentResponseHashKey;
 };
 
-export const createHyperswitchClient = async ({
-  configurator,
-  channelId,
-}: {
-  configurator: PaymentAppConfigurator;
-  channelId: string;
-}) => {
-  const HyperswitchConfig = await fetchHyperswitchConfiguration(configurator, channelId);
+export const createHyperswitchClient = async ({ configData }: { configData: ConfigObject }) => {
+  const HyperswitchConfig = await fetchHyperswitchConfiguration(configData);
   const fetcher = Fetcher.for<PaymentPaths>();
   fetcher.configure({
     baseUrl: getHyperswitchBaseUrl(HyperswitchConfig.publishableKey),

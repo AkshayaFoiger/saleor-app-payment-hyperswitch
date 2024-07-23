@@ -37,6 +37,7 @@ import { getSaleorAmountFromHyperswitchAmount } from "@/modules/hyperswitch/curr
 import crypto from "crypto";
 import { result } from "lodash-es";
 import { createLogger, logger } from "@/lib/logger";
+import { ConfigObject } from "@/backend-lib/api-route-utils";
 
 export const hyperswitchStatusToSaleorTransactionResult = (
   status: string,
@@ -148,13 +149,16 @@ export default async function hyperswitchAuthorizationWebhookHandler(
     (event) => event.type === "AUTHORIZATION_SUCCESS",
   );
 
-  const configurator = getPaymentAppConfigurator(client, saleorApiUrl);
   invariant(sourceObject, "Missing Source Object");
-  const channelId = sourceObject.channel.id;
+
+  const configData: ConfigObject = {
+    configurator: getPaymentAppConfigurator(client, saleorApiUrl),
+    channelId: sourceObject.channel.id,
+  };
 
   let paymentResponseHashKey = null;
   try {
-    paymentResponseHashKey = await fetchHyperswitchPaymentResponseHashKey(configurator, channelId);
+    paymentResponseHashKey = await fetchHyperswitchPaymentResponseHashKey(configData);
   } catch (errorData) {
     return res.status(406).json("Channel not assigned");
   }
@@ -169,8 +173,7 @@ export default async function hyperswitchAuthorizationWebhookHandler(
   let hyperswitchClient = null;
   try {
     hyperswitchClient = await createHyperswitchClient({
-      configurator,
-      channelId,
+      configData,
     });
   } catch (errorData) {
     if (errorData instanceof HyperswitchHttpClientError && errorData.statusCode != undefined) {

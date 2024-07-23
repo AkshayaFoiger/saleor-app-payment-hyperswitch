@@ -1,6 +1,6 @@
-import { paymentAppFullyConfiguredEntrySchema } from "../payment-app-configuration/config-entry";
-import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
-import { getWebhookPaymentAppConfigurator } from "../payment-app-configuration/payment-app-configuration-factory";
+import { paymentAppFullyConfiguredEntrySchema } from "../../payment-app-configuration/config-entry";
+import { getConfigurationForChannel } from "../../payment-app-configuration/payment-app-configuration";
+import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
 import { type TransactionChargeRequestedResponse } from "@/schemas/TransactionChargeRequested/TransactionChargeRequestedResponse.mjs";
 
 import { invariant } from "@/lib/invariant";
@@ -15,20 +15,21 @@ import {
 } from "generated/graphql";
 import { saleorApp } from "@/saleor-app";
 import { createClient } from "@/lib/create-graphq-client";
-import { intoErrorResponse, intoPaymentResponse } from "../hyperswitch/hyperswitch-api-response";
+import { intoErrorResponse, intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
 import { createLogger } from "@/lib/logger";
 import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
-} from "../hyperswitch/currencies";
+} from "../../hyperswitch/currencies";
 import {
   ChannelNotConfigured,
   HyperswitchHttpClientError,
   UnExpectedHyperswitchPaymentStatus,
 } from "@/errors";
 import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
-import { createHyperswitchClient } from "../hyperswitch/hyperswitch-api";
+import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
+import { ConfigObject } from "@/backend-lib/api-route-utils";
 
 export const hyperswitchPaymentCaptureStatusToSaleorTransactionResult = (
   status: string,
@@ -47,9 +48,10 @@ export const hyperswitchPaymentCaptureStatusToSaleorTransactionResult = (
   }
 };
 
-export const TransactionChargeRequestedWebhookHandler = async (
+export const TransactionChargeRequestedJuspayWebhookHandler = async (
   event: TransactionChargeRequestedEventFragment,
   saleorApiUrl: string,
+  configData: ConfigObject,
 ): Promise<TransactionChargeRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
@@ -80,8 +82,7 @@ export const TransactionChargeRequestedWebhookHandler = async (
   const errors: SyncWebhookAppErrors = [];
   const channelId = sourceObject.channel.id;
   const hyperswitchClient = await createHyperswitchClient({
-    configurator,
-    channelId,
+    configData,
   });
   const captureHyperswitchPayment = hyperswitchClient
     .path("/payments/{payment_id}/capture")

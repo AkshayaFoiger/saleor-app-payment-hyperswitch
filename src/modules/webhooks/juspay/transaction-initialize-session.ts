@@ -1,7 +1,7 @@
-import { getWebhookPaymentAppConfigurator } from "../payment-app-configuration/payment-app-configuration-factory";
-import { paymentAppFullyConfiguredEntrySchema } from "../payment-app-configuration/config-entry";
-import { obfuscateConfig, obfuscateValue } from "../app-configuration/utils";
-import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
+import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
+import { paymentAppFullyConfiguredEntrySchema } from "../../payment-app-configuration/config-entry";
+import { obfuscateConfig, obfuscateValue } from "../../app-configuration/utils";
+import { getConfigurationForChannel } from "../../payment-app-configuration/payment-app-configuration";
 import {
   SyncWebhookAppErrors,
   type TransactionInitializeSessionResponse,
@@ -15,11 +15,11 @@ import { createLogger } from "@/lib/logger";
 import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
-} from "../hyperswitch/currencies";
+} from "../../hyperswitch/currencies";
 import {
   buildAddressDetails,
   validatePaymentCreateRequest,
-} from "../hyperswitch/hyperswitch-api-request";
+} from "../../hyperswitch/hyperswitch-api-request";
 import {
   ChannelNotConfigured,
   UnExpectedHyperswitchPaymentStatus,
@@ -29,14 +29,15 @@ import {
   createHyperswitchClient,
   fetchHyperswitchProfileID,
   fetchHyperswitchPublishableKey,
-} from "../hyperswitch/hyperswitch-api";
+} from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
-import { Channel } from "../../types";
+import { Channel } from "../../../types";
 import {
   intoPaymentResponse,
   PaymentResponseSchema,
-} from "../hyperswitch/hyperswitch-api-response";
-import { normalizeValue } from "../payment-app-configuration/utils";
+} from "../../hyperswitch/hyperswitch-api-response";
+import { normalizeValue } from "../../payment-app-configuration/utils";
+import { ConfigObject } from "@/backend-lib/api-route-utils";
 
 export const hyperswitchPaymentIntentToTransactionResult = (
   status: string,
@@ -68,9 +69,10 @@ export const hyperswitchPaymentIntentToTransactionResult = (
   }
 };
 
-export const TransactionInitializeSessionWebhookHandler = async (
+export const TransactionInitializeSessionJuspayWebhookHandler = async (
   event: TransactionInitializeSessionEventFragment,
   saleorApiUrl: string,
+  configData: ConfigObject,
 ): Promise<TransactionInitializeSessionResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
@@ -104,11 +106,10 @@ export const TransactionInitializeSessionWebhookHandler = async (
   const channelId = event.sourceObject.channel.id;
 
   const hyperswitchClient = await createHyperswitchClient({
-    configurator,
-    channelId,
+    configData,
   });
 
-  const profileId = await fetchHyperswitchProfileID(configurator, channelId);
+  const profileId = await fetchHyperswitchProfileID(configData);
 
   const createHyperswitchPayment = hyperswitchClient.path("/payments").method("post").create();
   const capture_method =
@@ -139,7 +140,7 @@ export const TransactionInitializeSessionWebhookHandler = async (
     },
   };
 
-  const publishableKey = await fetchHyperswitchPublishableKey(configurator, channelId);
+  const publishableKey = await fetchHyperswitchPublishableKey(configData);
 
   const createPaymentResponse = await createHyperswitchPayment(createPaymentPayload);
   const createPaymentResponseData = intoPaymentResponse(createPaymentResponse.data);

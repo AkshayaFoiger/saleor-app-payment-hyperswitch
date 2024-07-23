@@ -8,8 +8,10 @@ import {
 } from "generated/graphql";
 import { saleorApp } from "@/saleor-app";
 import { getSyncWebhookHandler } from "@/backend-lib/api-route-utils";
-import { TransactionRefundRequestedWebhookHandler } from "@/modules/webhooks/transaction-refund-requested";
+import { TransactionRefundRequestedHyperswitchWebhookHandler } from "@/modules/webhooks/hyperswitch/transaction-refund-requested";
 import ValidateTransactionRefundRequestedResponse from "@/schemas/TransactionRefundRequested/TransactionRefundRequestedResponse.mjs";
+import { TransactionRefundRequestedConfigHandler } from "@/modules/webhooks/utils/config-handlers";
+import { TransactionRefundRequestedJuspayWebhookHandler } from "@/modules/webhooks/juspay/transaction-refund-requested";
 
 export const config: PageConfig = {
   api: {
@@ -29,7 +31,9 @@ export const transactionRefundRequestedSyncWebhook =
 export default transactionRefundRequestedSyncWebhook.createHandler(
   getSyncWebhookHandler(
     "transactionRefundRequested",
-    TransactionRefundRequestedWebhookHandler,
+    TransactionRefundRequestedConfigHandler,
+    TransactionRefundRequestedHyperswitchWebhookHandler,
+    TransactionRefundRequestedJuspayWebhookHandler,
     ValidateTransactionRefundRequestedResponse,
     (payload, errorResponse) => {
       return {

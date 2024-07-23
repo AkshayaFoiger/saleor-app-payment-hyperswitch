@@ -1,6 +1,6 @@
-import { getWebhookPaymentAppConfigurator } from "../payment-app-configuration/payment-app-configuration-factory";
-import { paymentAppFullyConfiguredEntrySchema } from "../payment-app-configuration/config-entry";
-import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
+import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
+import { paymentAppFullyConfiguredEntrySchema } from "../../payment-app-configuration/config-entry";
+import { getConfigurationForChannel } from "../../payment-app-configuration/payment-app-configuration";
 import {
   GetTransactionByIdDocument,
   GetTransactionByIdQuery,
@@ -17,11 +17,12 @@ import { createClient } from "@/lib/create-graphq-client";
 import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
-} from "../hyperswitch/currencies";
+} from "../../hyperswitch/currencies";
 import { ChannelNotConfigured } from "@/errors";
-import { createHyperswitchClient } from "../hyperswitch/hyperswitch-api";
+import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
-import { intoRefundResponse } from "../hyperswitch/hyperswitch-api-response";
+import { intoRefundResponse } from "../../hyperswitch/hyperswitch-api-response";
+import { ConfigObject } from "@/backend-lib/api-route-utils";
 
 export type PaymentRefundResponse = {
   status: string;
@@ -42,9 +43,10 @@ export const hyperswitchRefundToTransactionResult = (
   }
 };
 
-export const TransactionRefundRequestedWebhookHandler = async (
+export const TransactionRefundRequestedJuspayWebhookHandler = async (
   event: TransactionRefundRequestedEventFragment,
   saleorApiUrl: string,
+  configData: ConfigObject,
 ): Promise<TransactionRefundRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
@@ -71,8 +73,7 @@ export const TransactionRefundRequestedWebhookHandler = async (
   const payment_id = event.transaction.pspReference;
   const channelId = sourceObject.channel.id;
   const hyperswitchClient = await createHyperswitchClient({
-    configurator,
-    channelId,
+    configData,
   });
 
   const refundHyperswitchPayment = hyperswitchClient.path("/refunds").method("post").create();

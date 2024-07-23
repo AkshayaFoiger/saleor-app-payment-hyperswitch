@@ -9,8 +9,10 @@ import {
   TransactionEventTypeEnum,
 } from "generated/graphql";
 import { getSyncWebhookHandler } from "@/backend-lib/api-route-utils";
-import { TransactionCancelationRequestedWebhookHandler } from "@/modules/webhooks/transaction-cancelation-requested";
+import { TransactionCancelationRequestedHyperswitchWebhookHandler } from "@/modules/webhooks/hyperswitch/transaction-cancelation-requested";
 import ValidateTransactionCancelationRequestedResponse from "@/schemas/TransactionCancelationRequested/TransactionCancelationRequestedResponse.mjs";
+import { TransactionCancelationRequestedJuspayWebhookHandler } from "@/modules/webhooks/juspay/transaction-cancelation-requested";
+import { TransactionCancelationRequestedConfigHandler } from "@/modules/webhooks/utils/config-handlers";
 
 export const config: PageConfig = {
   api: {
@@ -30,7 +32,9 @@ export const transactionCancelationRequestedSyncWebhook =
 export default transactionCancelationRequestedSyncWebhook.createHandler(
   getSyncWebhookHandler(
     "transactionCancelationRequestedSyncWebhook",
-    TransactionCancelationRequestedWebhookHandler,
+    TransactionCancelationRequestedConfigHandler,
+    TransactionCancelationRequestedHyperswitchWebhookHandler,
+    TransactionCancelationRequestedJuspayWebhookHandler,
     ValidateTransactionCancelationRequestedResponse,
     (payload, errorResponse) => {
       return {
