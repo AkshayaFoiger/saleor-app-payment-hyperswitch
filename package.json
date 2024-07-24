@@ -106,7 +106,7 @@
     "@pollyjs/persister-fs": "6.0.6",
     "@saleor/eslint-plugin-saleor-app": "0.1.2",
     "@saleor/json-schema-compiler": "0.1.2",
-    "@testing-library/jest-dom": "6.1.5",
+    "@testing-library/jest-dom": "6.4.8",
     "@testing-library/react": "14.1.2",
     "@testing-library/react-hooks": "8.0.1",
     "@trpc/client": "10.44.1",
