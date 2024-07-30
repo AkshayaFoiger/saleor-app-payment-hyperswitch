@@ -86,14 +86,14 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       modern-errors:
-        specifier: 7.0.0
-        version: 7.0.0
+        specifier: 7.0.1
+        version: 7.0.1
       modern-errors-http:
         specifier: 5.0.0
-        version: 5.0.0(modern-errors@7.0.0)
+        version: 5.0.0(modern-errors@7.0.1)
       modern-errors-serialize:
         specifier: 6.0.0
-        version: 6.0.0(modern-errors@7.0.0)
+        version: 6.0.0(modern-errors@7.0.1)
       next:
         specifier: 14.2.5
         version: 14.2.5(@babel/core@7.24.5)(@opentelemetry/api@1.8.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -4871,8 +4871,8 @@ packages:
     peerDependencies:
       modern-errors: ^7.0.0
 
-  modern-errors@7.0.0:
-    resolution: {integrity: sha512-4H55sVGQe0JxbBIH9ea9QUkY3BDSpxauyWYXB5W4LCeYEvjEScYxnoHp9cFHxeCvUuf1a1lqJILo/H2kRV37og==}
+  modern-errors@7.0.1:
+    resolution: {integrity: sha512-UaWtjvt1LWLTmQq9vBcjVzVyaBS8PyN3YYF9Vzdf7dgaB9ySFBWbIH5nglEfLr1VVF7XrBrHrdp+Tnw7oITfTA==}
     engines: {node: '>=18.18.0'}
 
   morgan@1.10.0:
@@ -5710,9 +5710,9 @@ packages:
     resolution: {integrity: sha512-vJ7lRuvcn5NTbuT7QS8k+dh6AN5y1R/V2xZmlwvB48bJ2b8v46z+dgx5k1VGrB9xt7ZnC98jWcikHb6gyIJgAg==}
     engines: {node: '>=18.18.0'}
 
-  set-error-stack@2.0.0:
-    resolution: {integrity: sha512-mABWr7mmaY1EVBMXWo32t6byRkKclJ3gipglE2+XGBZxDEk0+zVumRfWyAK3s/EB/TbbUm1Gp0H8VvqlFkMa+g==}
-    engines: {node: '>=16.17.0'}
+  set-error-stack@3.0.0:
+    resolution: {integrity: sha512-jCcA0qrIqYWOct9WlC3xcEE9QaTWKEM9eztxr+fV2pa7ZGfFGiNh4RzqfJI8ps+oDDGtU8uvGPYxARyhI9t17Q==}
+    engines: {node: '>=18.18.0'}
 
   set-function-length@1.2.2:
     resolution: {integrity: sha512-pgRc4hJ4/sNjWCSS9AmnS40x3bNMDTknHgL5UaMBTMyJnU90EgWh1Rz+MC9eFu4BuN/UwZjKQuY/1v3rM7HMfg==}
@@ -12276,18 +12276,18 @@ snapshots:
 
   modern-ahocorasick@1.0.1: {}
 
-  modern-errors-http@5.0.0(modern-errors@7.0.0):
+  modern-errors-http@5.0.0(modern-errors@7.0.1):
     dependencies:
       error-http-response: 3.0.0
-      modern-errors: 7.0.0
+      modern-errors: 7.0.1
 
-  modern-errors-serialize@6.0.0(modern-errors@7.0.0):
+  modern-errors-serialize@6.0.0(modern-errors@7.0.1):
     dependencies:
       error-serializer: 7.0.0
       is-plain-obj: 4.1.0
-      modern-errors: 7.0.0
+      modern-errors: 7.0.1
 
-  modern-errors@7.0.0:
+  modern-errors@7.0.1:
     dependencies:
       error-class-utils: 4.0.0
       error-custom-class: 10.0.0
@@ -12297,7 +12297,7 @@ snapshots:
       normalize-exception: 3.0.0
       set-error-message: 3.0.0
       set-error-props: 6.0.0
-      set-error-stack: 2.0.0
+      set-error-stack: 3.0.0
 
   morgan@1.10.0:
     dependencies:
@@ -13186,7 +13186,7 @@ snapshots:
       is-plain-obj: 4.1.0
       redefine-property: 3.0.0
 
-  set-error-stack@2.0.0:
+  set-error-stack@3.0.0:
     dependencies:
       normalize-exception: 3.0.0
 
