@@ -55,7 +55,7 @@
     "@vanilla-extract/css": "1.14.0",
     "@vanilla-extract/next-plugin": "2.3.2",
     "@vanilla-extract/recipes": "0.5.1",
-    "@vitejs/plugin-react": "4.2.1",
+    "@vitejs/plugin-react": "4.3.1",
     "ajv": "8.12.0",
     "ajv-formats": "2.1.1",
     "bluebird": "3.7.2",
@@ -142,9 +142,9 @@
     "setup-polly-jest": "0.11.0",
     "ts-node": "10.9.2",
     "typescript": "5.3.3",
-    "vite": "5.0.13",
+    "vite": "5.4.0",
     "vite-tsconfig-paths": "4.2.2",
-    "vitest": "0.34.2"
+    "vitest": "2.0.5"
   },
   "pnpm": {
     "overrides": {
