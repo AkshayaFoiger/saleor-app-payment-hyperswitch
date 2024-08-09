@@ -1,6 +1,6 @@
 import { Box } from "@saleor/macaw-ui";
 import { ChipSuccess, ChipHyperswitchOrange, ChipInfo } from "@/modules/ui/atoms/Chip/Chip";
-import { getEnvironmentFromKey } from "@/modules/hyperswitch/hyperswitch-api";
+import { getEnvironmentFromKey } from "@/modules/api-utils";
 import { appBridgeInstance } from "@/app-bridge-instance";
 import { HyperswitchUserVisibleConfigEntry } from "@/modules/payment-app-configuration/hyperswitch-app-configuration/config-entry";
 import { JuspayUserVisibleConfigEntry } from "@/modules/payment-app-configuration/juspay-app-configuration/config-entry";

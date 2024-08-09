@@ -1,11 +1,7 @@
-import { getWebhookPaymentAppConfigurator } from "../payment-app-configuration/payment-app-configuration-factory";
-import { paymentAppFullyConfiguredEntrySchema } from "../payment-app-configuration/common-app-configuration/config-entry";
-import { obfuscateConfig, obfuscateValue } from "../app-configuration/utils";
-import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
 import {
   SyncWebhookAppErrors,
-  type TransactionInitializeSessionResponse,
-} from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
+  type HyperswitchTransactionInitializeSessionResponse,
+} from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";
 import {
   TransactionFlowStrategyEnum,
   type TransactionInitializeSessionEventFragment,
@@ -15,34 +11,23 @@ import { createLogger } from "@/lib/logger";
 import {
   getHyperswitchAmountFromSaleorMoney,
   getSaleorAmountFromHyperswitchAmount,
-} from "../hyperswitch/currencies";
-import {
-  buildAddressDetails,
-  validatePaymentCreateRequest,
-} from "../hyperswitch/hyperswitch-api-request";
-import {
-  ChannelNotConfigured,
-  CheckoutPaymentAlreadyProcessed,
-  UnExpectedHyperswitchPaymentStatus,
-  UnsupportedEvent,
-} from "@/errors";
+} from "../../hyperswitch/currencies";
+import { buildAddressDetails, validatePaymentCreateRequest } from "../../api-utils";
+import { UnExpectedHyperswitchPaymentStatus } from "@/errors";
 import {
   createHyperswitchClient,
   fetchHyperswitchProfileID,
   fetchHyperswitchPublishableKey,
-} from "../hyperswitch/hyperswitch-api";
+} from "../../hyperswitch/hyperswitch-api";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
-import { Channel } from "../../types";
-import {
-  intoPaymentResponse,
-  PaymentResponseSchema,
-} from "../hyperswitch/hyperswitch-api-response";
-import { normalizeValue } from "../payment-app-configuration/utils";
+import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
+import { normalizeValue } from "../../payment-app-configuration/utils";
+import { ConfigObject } from "@/backend-lib/api-route-utils";
 
 export const hyperswitchPaymentIntentToTransactionResult = (
   status: string,
   transactionFlow: TransactionFlowStrategyEnum,
-): TransactionInitializeSessionResponse["result"] => {
+): HyperswitchTransactionInitializeSessionResponse["result"] => {
   const prefix =
     transactionFlow === TransactionFlowStrategyEnum.Authorization
       ? "AUTHORIZATION"
@@ -69,10 +54,11 @@ export const hyperswitchPaymentIntentToTransactionResult = (
   }
 };
 
-export const TransactionInitializeSessionWebhookHandler = async (
+export const TransactionInitializeSessionHyperswitchWebhookHandler = async (
   event: TransactionInitializeSessionEventFragment,
   saleorApiUrl: string,
-): Promise<TransactionInitializeSessionResponse> => {
+  configData: ConfigObject,
+): Promise<HyperswitchTransactionInitializeSessionResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionInitializeSessionWebhookHandler] " },
@@ -90,29 +76,18 @@ export const TransactionInitializeSessionWebhookHandler = async (
     },
     "Received event",
   );
-
-  const app = event.recipient;
-  invariant(app, "Missing event.recipient!");
-  const { privateMetadata } = app;
-  const configurator = getWebhookPaymentAppConfigurator({ privateMetadata }, saleorApiUrl);
   const errors: SyncWebhookAppErrors = [];
   const currency = event.action.currency;
   const amount = getHyperswitchAmountFromSaleorMoney(event.action.amount, currency);
-  if (amount == 0) {
-    throw new CheckoutPaymentAlreadyProcessed("Checkout corresponding to this transaction is already captured! Please create a new checkout and try again.");
-  };
   let requestData = null;
   if (event.data != null) {
     requestData = validatePaymentCreateRequest(event.data);
   }
-  const channelId = event.sourceObject.channel.id;
-
   const hyperswitchClient = await createHyperswitchClient({
-    configurator,
-    channelId,
+    configData,
   });
 
-  const profileId = await fetchHyperswitchProfileID(configurator, channelId);
+  const profileId = await fetchHyperswitchProfileID(configData);
 
   const createHyperswitchPayment = hyperswitchClient.path("/payments").method("post").create();
   const capture_method =
@@ -121,6 +96,8 @@ export const TransactionInitializeSessionWebhookHandler = async (
   const userEmail = requestData?.billingEmail
     ? requestData?.billingEmail
     : event.sourceObject.userEmail;
+
+  const return_url = normalizeValue(requestData?.returnUrl);
 
   const createPaymentPayload: paymentsComponents["schemas"]["PaymentsCreateRequest"] = {
     amount,
@@ -134,32 +111,34 @@ export const TransactionInitializeSessionWebhookHandler = async (
     statement_descriptor_suffix: normalizeValue(requestData?.statementDescriptorSuffix),
     customer_id: normalizeValue(requestData?.customerId),
     authentication_type: normalizeValue(requestData?.authenticationType),
-    return_url: normalizeValue(requestData?.returnUrl),
+    return_url,
     description: normalizeValue(requestData?.description),
     billing: buildAddressDetails(event.sourceObject.billingAddress, userEmail),
     shipping: buildAddressDetails(event.sourceObject.shippingAddress, requestData?.shippingEmail),
-    manual_retry_allowed: normalizeValue(requestData?.manualRetryAllowed),
     metadata: {
       transaction_id: event.transaction.id,
       saleor_api_url: saleorApiUrl,
     },
   };
 
-  const publishableKey = await fetchHyperswitchPublishableKey(configurator, channelId);
+  const publishableKey = await fetchHyperswitchPublishableKey(configData);
+
   const createPaymentResponse = await createHyperswitchPayment(createPaymentPayload);
   const createPaymentResponseData = intoPaymentResponse(createPaymentResponse.data);
   const result = hyperswitchPaymentIntentToTransactionResult(
     createPaymentResponseData.status,
     event.action.actionType,
   );
-  const transactionInitializeSessionResponse: TransactionInitializeSessionResponse = {
+  const transactionInitializeSessionResponse: HyperswitchTransactionInitializeSessionResponse = {
     data: {
       clientSecret: createPaymentResponseData.client_secret,
       publishableKey,
-      paymentLinkId: createPaymentResponseData.payment_link?.payment_link_id,
+      paymentLinkId: return_url
+        ? createPaymentResponseData.payment_link?.payment_link_id
+        : undefined,
+      paymentLink: return_url ? createPaymentResponseData.payment_link?.link : undefined,
       errors,
     },
-    externalUrl: createPaymentResponseData.payment_link?.link,
     pspReference: createPaymentResponseData.payment_id,
     result,
     amount: getSaleorAmountFromHyperswitchAmount(

@@ -8,9 +8,11 @@ import {
   TransactionFlowStrategyEnum,
   TransactionEventTypeEnum,
 } from "generated/graphql";
-import { TransactionInitializeSessionWebhookHandler } from "@/modules/webhooks/transaction-initialize-session";
+import { TransactionInitializeSessionHyperswitchWebhookHandler } from "@/modules/webhooks/hyperswitch/transaction-initialize-session";
 import { getSyncWebhookHandler } from "@/backend-lib/api-route-utils";
-import ValidateTransactionInitializeSessionResponse from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
+import ValidateTransactionInitializeSessionResponse from "@/schemas/HyperswitchTransactionInitializeSession/HyperswitchTransactionInitializeSessionResponse.mjs";
+import { TransactionInitializeSessionJuspayWebhookHandler } from "@/modules/webhooks/juspay/transaction-initialize-session";
+import { TransactionInitializeSessionConfigHandler } from "@/modules/webhooks/utils/config-handlers";
 
 export const config: PageConfig = {
   api: {
@@ -30,7 +32,9 @@ export const transactionInitializeSessionSyncWebhook =
 export default transactionInitializeSessionSyncWebhook.createHandler(
   getSyncWebhookHandler(
     "transactionInitializeSessionSyncWebhook",
-    TransactionInitializeSessionWebhookHandler,
+    TransactionInitializeSessionConfigHandler,
+    TransactionInitializeSessionHyperswitchWebhookHandler,
+    TransactionInitializeSessionJuspayWebhookHandler,
     ValidateTransactionInitializeSessionResponse,
     (payload, errorResponse) => {
       return {

@@ -8,8 +8,10 @@ import {
   TransactionEventTypeEnum,
 } from "generated/graphql";
 import { getSyncWebhookHandler } from "@/backend-lib/api-route-utils";
-import { TransactionChargeRequestedWebhookHandler } from "@/modules/webhooks/transaction-charge-requested";
-import ValidateTransactionChargeRequestedResponse from "@/schemas/TransactionChargeRequested/TransactionChargeRequestedResponse.mjs";
+import { TransactionChargeRequestedHyperswitchWebhookHandler } from "@/modules/webhooks/hyperswitch/transaction-charge-requested";
+import ValidateTransactionChargeRequestedResponse from "@/schemas/HyperswitchTransactionChargeRequested/HyperswitchTransactionChargeRequestedResponse.mjs";
+import { TransactionChargeRequestedJuspayWebhookHandler } from "@/modules/webhooks/juspay/transaction-charge-requested";
+import { TransactionChargeRequestedConfigHandler } from "@/modules/webhooks/utils/config-handlers";
 
 export const config: PageConfig = {
   api: {
@@ -29,7 +31,9 @@ export const transactionChargeRequestedSyncWebhook =
 export default transactionChargeRequestedSyncWebhook.createHandler(
   getSyncWebhookHandler(
     "transactionChargeRequestedSyncWebhook",
-    TransactionChargeRequestedWebhookHandler,
+    TransactionChargeRequestedConfigHandler,
+    TransactionChargeRequestedHyperswitchWebhookHandler,
+    TransactionChargeRequestedJuspayWebhookHandler,
     ValidateTransactionChargeRequestedResponse,
     (payload, errorResponse) => {
       return {

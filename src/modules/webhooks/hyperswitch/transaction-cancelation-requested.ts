@@ -1,31 +1,16 @@
-import { getWebhookPaymentAppConfigurator } from "../payment-app-configuration/payment-app-configuration-factory";
-import { paymentAppFullyConfiguredEntrySchema } from "../payment-app-configuration/common-app-configuration/config-entry";
-import { getConfigurationForChannel } from "../payment-app-configuration/payment-app-configuration";
-import { type TransactionCancelationRequestedResponse } from "@/schemas/TransactionCancelationRequested/TransactionCancelationRequestedResponse.mjs";
-import {
-  TransactionEventTypeEnum,
-  type TransactionCancelationRequestedEventFragment,
-  TransactionActionEnum,
-  GetTransactionByIdQuery,
-  GetTransactionByIdQueryVariables,
-  GetTransactionByIdDocument,
-} from "generated/graphql";
+import { getWebhookPaymentAppConfigurator } from "../../payment-app-configuration/payment-app-configuration-factory";
+import { type HyperswitchTransactionCancelationRequestedResponse } from "@/schemas/HyperswitchTransactionCancelationRequested/HyperswitchTransactionCancelationRequestedResponse.mjs";
+import { type TransactionCancelationRequestedEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
-import { saleorApp } from "@/saleor-app";
-import { createClient } from "@/lib/create-graphq-client";
 import { createLogger } from "@/lib/logger";
-import { createHyperswitchClient } from "../hyperswitch/hyperswitch-api";
-import { ChannelNotConfigured } from "@/errors";
-import {
-  getHyperswitchAmountFromSaleorMoney,
-  getSaleorAmountFromHyperswitchAmount,
-} from "../hyperswitch/currencies";
-import { SyncWebhookAppErrors } from "@/schemas/TransactionInitializeSession/TransactionInitializeSessionResponse.mjs";
-import { intoPaymentResponse } from "../hyperswitch/hyperswitch-api-response";
+import { createHyperswitchClient } from "../../hyperswitch/hyperswitch-api";
+import { getSaleorAmountFromHyperswitchAmount } from "../../hyperswitch/currencies";
+import { intoPaymentResponse } from "../../hyperswitch/hyperswitch-api-response";
+import { ConfigObject } from "@/backend-lib/api-route-utils";
 
 export const hyperswitchPaymentCancelStatusToSaleorTransactionResult = (
   status: string,
-): TransactionCancelationRequestedResponse["result"] | null => {
+): HyperswitchTransactionCancelationRequestedResponse["result"] | null => {
   switch (status) {
     case "cancelled":
       return "CANCEL_SUCCESS";
@@ -38,10 +23,11 @@ export const hyperswitchPaymentCancelStatusToSaleorTransactionResult = (
   }
 };
 
-export const TransactionCancelationRequestedWebhookHandler = async (
+export const TransactionCancelationRequestedHyperswitchWebhookHandler = async (
   event: TransactionCancelationRequestedEventFragment,
   saleorApiUrl: string,
-): Promise<TransactionCancelationRequestedResponse> => {
+  configData: ConfigObject,
+): Promise<HyperswitchTransactionCancelationRequestedResponse> => {
   const logger = createLogger(
     { saleorApiUrl },
     { msgPrefix: "[TransactionCancelationRequestedWebhookHandler] " },
@@ -62,11 +48,9 @@ export const TransactionCancelationRequestedWebhookHandler = async (
   invariant(event.transaction.sourceObject, "Missing sourceObject");
   const sourceObject = event.transaction.sourceObject;
   const payment_id = event.transaction.pspReference;
-  const channelId = sourceObject.channel.id;
 
   const hyperswitchClient = await createHyperswitchClient({
-    configurator,
-    channelId,
+    configData,
   });
 
   const cancelHyperswitchPayment = hyperswitchClient
@@ -90,7 +74,7 @@ export const TransactionCancelationRequestedWebhookHandler = async (
     cancelPaymentResponseData.status,
   );
 
-  const transactionCancelationRequestedResponse: TransactionCancelationRequestedResponse =
+  const transactionCancelationRequestedResponse: HyperswitchTransactionCancelationRequestedResponse =
     result === undefined
       ? {
           pspReference: cancelPaymentResponseData.payment_id,

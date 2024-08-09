@@ -13,6 +13,12 @@ import {
 } from "@/errors";
 import { toStringOrEmpty } from "@/lib/utils";
 import { saleorApp } from "@/saleor-app";
+import { z, ZodError } from "zod";
+import {
+  getConfigurationForChannel,
+  PaymentAppConfigurator,
+} from "@/modules/payment-app-configuration/payment-app-configuration";
+import { paymentAppFullyConfiguredEntrySchema } from "@/modules/payment-app-configuration/common-app-configuration/config-entry";
 
 export const validateData = async <S extends ValidateFunction>(data: unknown, validate: S) => {
   type Result = S extends ValidateFunction<infer T> ? T : never;
@@ -29,7 +35,17 @@ export const validateData = async <S extends ValidateFunction>(data: unknown, va
 
 export function getSyncWebhookHandler<TPayload, TResult, TSchema extends ValidateFunction<TResult>>(
   name: string,
-  webhookHandler: (payload: TPayload, saleorApiUrl: string) => Promise<TResult>,
+  configHandler: (payload: TPayload, saleorApiUrl: string) => Promise<ConfigObject>,
+  webhookHandlerHyperswitch: (
+    payload: TPayload,
+    saleorApiUrl: string,
+    configData: ConfigObject,
+  ) => Promise<TResult>,
+  webhookHandlerJuspay: (
+    payload: TPayload,
+    saleorApiUrl: string,
+    configData: ConfigObject,
+  ) => Promise<TResult>,
   ResponseSchema: TSchema,
   errorMapper: (payload: TPayload, errorResponse: ErrorResponse) => TResult & {},
 ): NextWebhookApiHandler<TPayload> {
@@ -41,15 +57,21 @@ export function getSyncWebhookHandler<TPayload, TResult, TSchema extends Validat
       { msgPrefix: `[${name}] ` },
     );
     const { authData, payload } = ctx;
-    logger.info(`handler called: ${webhookHandler.name}`);
+    logger.info(`handler called: ${name}Handler`);
     logger.debug({ payload }, "ctx payload");
     try {
-      const result = await webhookHandler(payload, authData.saleorApiUrl);
-      logger.info(`${webhookHandler.name} was successful`);
+      const configData = await configHandler(payload, authData.saleorApiUrl);
+      const orchestra = await getOrchestra(configData);
+      const result =
+        orchestra == Orchersta.Juspay
+          ? await webhookHandlerJuspay(payload, authData.saleorApiUrl, configData)
+          : await webhookHandlerHyperswitch(payload, authData.saleorApiUrl, configData);
+
+      logger.info(`${name}Handler was successful`);
       logger.debug({ result }, "Sending successful response");
       return res.json(result);
     } catch (err) {
-      logger.error({ err: redactError(err) }, `${webhookHandler.name} error`);
+      logger.error({ err: redactError(err) }, `${name}Handler error`);
       const response = errorToResponse(err);
 
       if (!response) {
@@ -122,3 +144,24 @@ export const getAuthDataForRequest = async (request: NextApiRequest) => {
 
   return authData;
 };
+
+enum Orchersta {
+  Hyperswitch,
+  Juspay,
+}
+
+export type ConfigObject = {
+  configurator: PaymentAppConfigurator;
+  channelId: string;
+};
+
+async function getOrchestra<TPayload>(configData: ConfigObject): Promise<Error | Orchersta> {
+  const appConfig = await configData.configurator.getConfig();
+  const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
+  const config = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
+  if (config.juspayConfiguration) {
+    return Orchersta.Juspay;
+  } else {
+    return Orchersta.Hyperswitch;
+  }
+}

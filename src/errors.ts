@@ -21,13 +21,18 @@ export const MissingSaleorApiUrlError = BaseError.subclass("MissingSaleorApiUrlE
 export const MissingAuthDataError = BaseError.subclass("MissingAuthDataError");
 export const ChannelNotConfigured = BaseError.subclass("ChannelNotConfiguredError");
 export const UnsupportedEvent = BaseError.subclass("UnsupportedEventError");
-export const CheckoutPaymentAlreadyProcessed = BaseError.subclass("CheckoutPaymentAlreadyProcessedError");
+export const CheckoutPaymentAlreadyProcessed = BaseError.subclass(
+  "CheckoutPaymentAlreadyProcessedError",
+);
 export const UnExpectedHyperswitchPaymentStatus = BaseError.subclass(
   "UnExpectedHyperswitchPaymentStatusError",
 );
 export const ConfigurationNotFound = BaseError.subclass("ConfigurationNotFoundError");
-
+export const UnExpectedJuspayPaymentStatus = BaseError.subclass(
+  "UnExpectedJuspayPaymentStatusError",
+);
 export const HyperswitchHttpClientError = BaseError.subclass("HyperswitchHttpClientError");
+export const JuspayHttpClientError = BaseError.subclass("JuspayHttpClientError");
 export const HttpRequestError = BaseError.subclass("HttpRequestError", {
   props: {} as { statusCode: number; body: string; headers: IncomingHttpHeaders },
 });

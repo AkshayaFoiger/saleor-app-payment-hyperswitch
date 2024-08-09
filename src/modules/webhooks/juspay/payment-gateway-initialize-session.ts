@@ -2,10 +2,12 @@ import { type PaymentGatewayInitializeSessionResponse } from "@/schemas/PaymentG
 import { type PaymentGatewayInitializeSessionEventFragment } from "generated/graphql";
 import { invariant } from "@/lib/invariant";
 import { createLogger } from "@/lib/logger";
+import { ConfigObject } from "@/backend-lib/api-route-utils";
 
-export const PaymentGatewayInitializeSessionWebhookHandler = async (
+export const PaymentGatewayInitializeSessionJuspayWebhookHandler = async (
   event: PaymentGatewayInitializeSessionEventFragment,
   saleorApiUrl: string,
+  _configData: ConfigObject,
 ): Promise<PaymentGatewayInitializeSessionResponse> => {
   const logger = createLogger(
     {},
@@ -17,7 +19,9 @@ export const PaymentGatewayInitializeSessionWebhookHandler = async (
 
   logger.info({}, "Processing Payment Gateway Initialize request");
   const paymentGatewayInitializeSessionResponse: PaymentGatewayInitializeSessionResponse = {
-    data: {},
+    data: {
+      orchestra: "JUSPAY",
+    },
   };
   return paymentGatewayInitializeSessionResponse;
 };

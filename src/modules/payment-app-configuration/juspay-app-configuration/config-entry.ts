@@ -59,3 +59,4 @@ export const juspayFormConfigEntrySchema = z
   });
 
 export type JuspayUserVisibleConfigEntry = z.infer<typeof juspayUserVisibleConfigEntrySchema>;
+export type JuspayFullyConfiguredEntry = z.infer<typeof juspayFullyConfiguredEntrySchema>;

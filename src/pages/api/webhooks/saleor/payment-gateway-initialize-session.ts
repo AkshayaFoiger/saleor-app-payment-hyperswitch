@@ -5,9 +5,11 @@ import {
   UntypedPaymentGatewayInitializeSessionDocument,
   type PaymentGatewayInitializeSessionEventFragment,
 } from "generated/graphql";
-import { PaymentGatewayInitializeSessionWebhookHandler } from "@/modules/webhooks/payment-gateway-initialize-session";
+import { PaymentGatewayInitializeSessionHyperswitchWebhookHandler } from "@/modules/webhooks/hyperswitch/payment-gateway-initialize-session";
 import { getSyncWebhookHandler } from "@/backend-lib/api-route-utils";
 import ValidatePaymentGatewayInitializeSessionResponse from "@/schemas/PaymentGatewayInitializeSession/PaymentGatewayInitializeSessionResponse.mjs";
+import { PaymentGatewayInitializeSessionConfigHandler } from "@/modules/webhooks/utils/config-handlers";
+import { PaymentGatewayInitializeSessionJuspayWebhookHandler } from "@/modules/webhooks/juspay/payment-gateway-initialize-session";
 
 export const config: PageConfig = {
   api: {
@@ -27,7 +29,9 @@ export const paymentGatewayInitializeSessionSyncWebhook =
 export default paymentGatewayInitializeSessionSyncWebhook.createHandler(
   getSyncWebhookHandler(
     "paymentGatewayInitializeSessionSyncWebhook",
-    PaymentGatewayInitializeSessionWebhookHandler,
+    PaymentGatewayInitializeSessionConfigHandler,
+    PaymentGatewayInitializeSessionHyperswitchWebhookHandler,
+    PaymentGatewayInitializeSessionJuspayWebhookHandler,
     ValidatePaymentGatewayInitializeSessionResponse,
     (payload, errorResponse) => {
       return {

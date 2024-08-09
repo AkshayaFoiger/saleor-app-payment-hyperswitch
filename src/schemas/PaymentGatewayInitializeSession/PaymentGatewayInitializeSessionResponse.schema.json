@@ -5,7 +5,9 @@
     "data": {
       "type": "object",
       "additionalProperties": true,
-      "properties": {},
+      "properties": {
+        "orchestra": { "$ref": "definitions.json#/definitions/Orchestra" }
+      },
       "required": []
     }
   },

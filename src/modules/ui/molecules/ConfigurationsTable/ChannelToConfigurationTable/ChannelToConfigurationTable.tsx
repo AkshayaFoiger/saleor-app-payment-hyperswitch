@@ -12,7 +12,7 @@ import {
   type ChannelMapping,
 } from "@/modules/payment-app-configuration/common-app-configuration/app-config";
 import { type PaymentAppConfigEntry } from "@/modules/payment-app-configuration/common-app-configuration/config-entry";
-import { getEnvironmentFromKey } from "@/modules/hyperswitch/hyperswitch-api";
+import { getEnvironmentFromKey } from "@/modules/api-utils";
 
 const ChannelToConfigurationTableRow = ({
   channel,

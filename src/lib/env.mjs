@@ -28,6 +28,8 @@ export const env = createEnv({
     APP_IFRAME_BASE_URL: z.string().optional(),
     HYPERSWITCH_SANDBOX_BASE_URL: z.string(),
     HYPERSWITCH_PROD_BASE_URL: z.string(),
+    JUSPAY_SANDBOX_BASE_URL: z.string(),
+    JUSPAY_PROD_BASE_URL: z.string(),
   },
 
   /*
@@ -67,5 +69,7 @@ export const env = createEnv({
     APP_IFRAME_BASE_URL: process.env.APP_IFRAME_BASE_URL,
     HYPERSWITCH_SANDBOX_BASE_URL: process.env.HYPERSWITCH_SANDBOX_BASE_URL,
     HYPERSWITCH_PROD_BASE_URL: process.env.HYPERSWITCH_PROD_BASE_URL,
+    JUSPAY_SANDBOX_BASE_URL: process.env.JUSPAY_SANDBOX_BASE_URL,
+    JUSPAY_PROD_BASE_URL: process.env.JUSPAY_PROD_BASE_URL,
   },
 });

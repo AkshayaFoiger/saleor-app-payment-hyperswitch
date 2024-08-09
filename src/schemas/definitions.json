@@ -65,6 +65,10 @@
       "type": "string",
       "enum": ["REFUND_SUCCESS", "REFUND_FAILURE"]
     },
+    "Orchestra": {
+      "type": "string",
+      "enum": ["HYPERSWITCH", "JUSPAY"]
+    },
     "SyncWebhookAppError": {
       "type": "object",
       "additionalProperties": false,
@@ -79,6 +83,45 @@
       "items": {
         "$ref": "definitions.json#/definitions/SyncWebhookAppError"
       }
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "amount": { "type": "string" },
+        "merchantId": { "type": "string" },
+        "clientAuthToken": { "type": "string" },
+        "clientAuthTokenExpiry": { "type": "string" },
+        "environment": { "type": "string" },
+        "lastName": { "type": "string" },
+        "action": { "type": "string" },
+        "customerId": { "type": "string" },
+        "returnUrl": { "type": "string" },
+        "currency": { "type": "string" },
+        "firstName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "orderId": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "paymentLinks": {
+      "type": "object",
+      "properties": {
+        "web": { "type": "string" },
+        "expiry": { "type": "string" },
+        "deep_link": { "type": "string" }
+      }
+    },
+    "sdkPayload": {
+      "type": "object",
+      "properties": {
+        "requestId": { "type": "string" },
+        "service": { "type": "string" },
+        "payload": { "$ref": "definitions.json#/definitions/payload" },
+        "expiry": { "type": "string" }
+      },
+      "required": ["requestId", "service"]
     }
   }
 }

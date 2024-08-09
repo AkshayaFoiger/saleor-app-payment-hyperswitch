@@ -1,14 +1,20 @@
 import { JsonSchemaError } from "@/errors";
-import {
-  TransactionInitializeSessionAddressFragment,
-  TransactionInitializeSessionEventFragment,
-} from "generated/graphql";
+import { TransactionInitializeSessionAddressFragment } from "generated/graphql";
 import { z, ZodError } from "zod";
 import { type components as paymentsComponents } from "generated/hyperswitch-payments";
-import { normalizeValue } from "../payment-app-configuration/utils";
-const AuthenticationTypeEnum = z.enum(["three_ds", "no_three_ds"]);
+import { normalizeValue } from "./payment-app-configuration/utils";
+import { env } from "@/lib/env.mjs";
+import { randomBytes } from "crypto";
 
-const SetupFutureUsageEnum = z.enum(["off_session", "on_session"]);
+export const getEnvironmentFromKey = (): string => {
+  return env.NEXT_PUBLIC_ENV;
+};
+
+export function generate16DigitId(): string {
+  return randomBytes(8).toString("hex");
+}
+
+const AuthenticationTypeEnum = z.enum(["three_ds", "no_three_ds"]);
 
 const AllowedPaymentMethodTypes = z.enum([
   "ach",
@@ -99,8 +105,6 @@ const AllowedPaymentMethodTypes = z.enum([
   "local_bank_transfer",
 ]);
 
-const RetryActionEnum = z.enum(["manual_retry", "requeue"]);
-
 // Define the schema for PaymentCreateRequest
 const PaymentCreateRequestSchema = z.object({
   customerId: z.string().nullable().optional(),
@@ -114,6 +118,7 @@ const PaymentCreateRequestSchema = z.object({
   returnUrl: z.string().nullable().optional(),
   allowedPaymentMethodTypes: z.array(AllowedPaymentMethodTypes).nullable().optional(),
   manualRetryAllowed: z.boolean().nullable().optional(),
+  gatewayReferenceId: z.string().nullable().optional(),
 });
 
 // Type definition for PaymentCreateRequest
