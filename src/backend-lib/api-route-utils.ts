@@ -63,7 +63,7 @@ export function getSyncWebhookHandler<TPayload, TResult, TSchema extends Validat
       const configData = await configHandler(payload, authData.saleorApiUrl);
       const orchestra = await getOrchestra(configData);
       const result =
-        orchestra == Orchersta.Juspay
+        orchestra == Orchestra.Juspay
           ? await webhookHandlerJuspay(payload, authData.saleorApiUrl, configData)
           : await webhookHandlerHyperswitch(payload, authData.saleorApiUrl, configData);
 
@@ -145,7 +145,7 @@ export const getAuthDataForRequest = async (request: NextApiRequest) => {
   return authData;
 };
 
-enum Orchersta {
+enum Orchestra {
   Hyperswitch,
   Juspay,
 }
@@ -155,13 +155,13 @@ export type ConfigObject = {
   channelId: string;
 };
 
-async function getOrchestra<TPayload>(configData: ConfigObject): Promise<Error | Orchersta> {
+async function getOrchestra<TPayload>(configData: ConfigObject): Promise<Error | Orchestra> {
   const appConfig = await configData.configurator.getConfig();
   const appChannelConfig = getConfigurationForChannel(appConfig, configData.channelId);
   const config = paymentAppFullyConfiguredEntrySchema.parse(appChannelConfig);
   if (config.juspayConfiguration) {
-    return Orchersta.Juspay;
+    return Orchestra.Juspay;
   } else {
-    return Orchersta.Hyperswitch;
+    return Orchestra.Hyperswitch;
   }
 }
